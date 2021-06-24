@@ -39,6 +39,8 @@ public class DayView: UIView {
   static let headerVisibleHeight: CGFloat = 88
   var headerHeight: CGFloat = headerVisibleHeight
 
+    var currentDate = Date().dateOnly()
+    
   open var autoScrollToFirstEvent: Bool {
     get {
       return timelinePagerView.autoScrollToFirstEvent
@@ -91,6 +93,39 @@ public class DayView: UIView {
     dayHeaderView.updateStyle(style.header)
     timelinePagerView.updateStyle(style.timeline)
   }
+    
+    public func changeCurrentDate(to newDate: Date) {
+        let newDate = newDate.dateOnly()
+        if newDate.isEarlier(than: currentDate) {
+            var timelineDate = newDate
+            for (index, timelineContainer) in timelinePagerView.timelinePager.reusableViews.enumerated() {
+                timelineContainer.timeline.date = timelineDate
+                timelineDate = timelineDate.add(TimeChunk(seconds: 0, minutes: 0, hours: 0, days: 1, weeks: 0, months: 0, years: 0))
+                if index == 0 {
+                    timelinePagerView.updateTimeline(timelineContainer.timeline)
+                }
+            }
+            timelinePagerView.timelinePager.scrollBackward()
+        } else if newDate.isLater(than: currentDate) {
+            var timelineDate = newDate
+            for (index, timelineContainer) in timelinePagerView.timelinePager.reusableViews.reversed().enumerated() {
+                timelineContainer.timeline.date = timelineDate
+                timelineDate = timelineDate.subtract(TimeChunk(seconds: 0, minutes: 0, hours: 0, days: 1, weeks: 0, months: 0, years: 0))
+                if index == 0 {
+                    timelinePagerView.updateTimeline(timelineContainer.timeline)
+                }
+            }
+            timelinePagerView.timelinePager.scrollForward()
+            
+        }
+        
+        currentDate = newDate
+        self.scrollTo(hour24: 9)
+    }
+    
+    public func getCurrentDate() -> Date {
+        return currentDate
+    }
 
   public func timelinePanGestureRequire(toFail gesture: UIGestureRecognizer) {
     timelinePagerView.timelinePanGestureRequire(toFail: gesture)
